@@ -3,7 +3,7 @@
 An elegant, high-performance, keyboard-driven math puzzle game designed to help developers, students, and arithmetic enthusiasts build lightning-fast mental multiplication recall!
 
 Play the live game instantly right inside your browser:  
-👉 **[Click Here to Play!](https://github.com/BroMarioMethod/multiplication-mastery/)**
+👉 **[Click Here to Play!]([https://github.com/BroMarioMethod/multiplication-mastery/](https://bromariomethod.github.io/multiplication-mastery/index.html))**
 
 ---
 
