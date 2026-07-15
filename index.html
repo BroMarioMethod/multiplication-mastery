@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplication Mastery</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --correct: #10b981;
+            --incorrect: #ef4444;
+            --highlight: #334155;
+            --gold: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden; /* Prevents body scrolling on desktop */
+        }
+
+        /* Three-Column Grid Layout */
+        .main-layout {
+            display: flex;
+            flex-direction: row;
+            gap: 24px;
+            width: 100%;
+            max-width: 1600px;
+            height: 90vh;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Column 1: Left Sidebar (Controls & Live Stats) */
+        .left-sidebar {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100%;
+            justify-content: center;
+        }
+
+        /* Column 2: Center (The Scaling Game Grid + Play Overlay) */
+        .grid-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 75vh; /* Keep the grid perfectly bound to square dimensions */
+            height: 100%;
+            position: relative;
+        }
+
+        .game-container {
+            width: 100%;
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transition: filter 0.3s ease;
+        }
+
+        .game-container.blurred {
+            filter: blur(12px);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Center Play Button Overlay Layout */
+        .play-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .btn-start-game {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px 36px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn-start-game:hover {
+            background-color: var(--accent-hover);
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.6);
+        }
+
+        /* Column 3: Right Sidebar (Dynamic Summary & Local Leaderboard) */
+        .right-sidebar {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: 100%;
+            justify-content: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+            text-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            padding: 16px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Name Input Panel */
+        .username-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .username-panel label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .username-panel input {
+            background: #0f172a;
+            border: 2px solid #334155;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-weight: 600;
+            outline: none;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .username-panel input:focus {
+            border-color: var(--accent);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+            margin-top: 2px;
+        }
+
+        .checkbox-container input {
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        /* Mode & Shuffle Configuration Block */
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        button {
+            background-color: #334155;
+            color: var(--text-main);
+            border: none;
+            padding: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        button:hover {
+            background-color: var(--accent);
+        }
+
+        button.active {
+            background-color: var(--accent);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 3px;
+            padding-top: 8px;
+            border-top: 2px solid #334155;
+        }
+
+        /* Toggle Switch Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #334155;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Vertical Stacked Stats Panel */
+        .stats-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-box {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box.full-width {
+            grid-column: span 2;
+        }
+
+        .stat-box .label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .stat-box .value {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        /* Results / Summary Panel Split */
+        .results-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%;
+            max-height: 90vh;
+            justify-content: flex-start;
+            border: 2px solid #334155;
+            overflow: hidden;
+        }
+
+        .results-panel.completed {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .results-title {
+            font-weight: bold;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 5px;
+            margin-bottom: 2px;
+        }
+
+        .results-panel.completed .results-title {
+            color: var(--accent);
+        }
+
+        .scrollable-section {
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
+        }
+
+        .scrollable-section::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scrollable-section::-webkit-scrollbar-thumb {
+            background: var(--highlight);
+            border-radius: 2px;
+        }
+
+        .mistakes-list, .leaderboard-list {
+            list-style: none;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .mistakes-list li, .leaderboard-list li {
+            padding: 6px 10px;
+            background: #0f172a;
+            border-radius: 4px;
+        }
+
+        .mistakes-list li {
+            border-left: 3px solid var(--incorrect);
+        }
+
+        .leaderboard-list li {
+            border-left: 3px solid var(--highlight);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .leaderboard-list li.top-score {
+            border-left-color: var(--gold);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        /* Table Grid Layout */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 4px;
+            table-layout: fixed;
+        }
+
+        th, td {
+            position: relative;
+            text-align: center;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+
+        th::after, td::after {
+            content: "";
+            display: block;
+            padding-bottom: 100%;
+        }
+
+        .cell-content {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        th {
+            background-color: #1e293b;
+            color: var(--text-muted);
+            font-weight: 700;
+            user-select: none;
+            border: 1px solid #334155;
+        }
+
+        th.highlighted-header {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        th.corner {
+            background-color: transparent;
+            border: none;
+        }
+
+        td {
+            background-color: #0f172a;
+        }
+
+        td.highlighted-row-col {
+            background-color: var(--highlight);
+        }
+
+        td input {
+            width: 100%; height: 100%;
+            background: transparent;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            color: var(--text-main);
+            text-align: center;
+            font-size: clamp(0.7rem, 2vw, 1.3rem);
+            font-weight: bold;
+            outline: none;
+            padding: 0;
+            transition: all 0.15s ease;
+        }
+
+        td input::-webkit-outer-spin-button,
+        td input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        td input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        td input:focus {
+            border-color: var(--accent);
+            background-color: rgba(59, 130, 246, 0.15);
+        }
+
+        td input.correct {
+            background-color: rgba(16, 185, 129, 0.2) !important;
+            border-color: var(--correct) !important;
+            color: #34d399;
+        }
+
+        td input.incorrect {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+            border-color: var(--incorrect) !important;
+            color: #f87171;
+        }
+
+        .info-bar {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Guide Tutorial Onboarding Modal Layout */
+        .tutorial-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .tutorial-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .tutorial-card {
+            background: var(--panel-bg);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border: 2px solid var(--highlight);
+        }
+
+        .tutorial-header {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tutorial-body {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            min-height: 120px;
+        }
+
+        .tutorial-body b {
+            color: var(--text-main);
+        }
+
+        .tutorial-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--highlight);
+            padding-top: 14px;
+        }
+
+        .btn-modal-next {
+            background-color: var(--accent);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-modal-next:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Responsive Fallback for Tablets/Mobiles */
+        @media (max-width: 1100px) {
+            body { overflow: auto; }
+            .main-layout {
+                flex-direction: column;
+                height: auto;
+                gap: 20px;
+            }
+            .left-sidebar, .right-sidebar {
+                width: 100%;
+                height: auto;
+            }
+            .grid-area {
+                max-width: 100%;
+                width: 100%;
+                min-height: 400px;
+            }
+            .stats-panel {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .stat-box.full-width {
+                grid-column: span 2;
+            }
+            .results-panel {
+                max-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="tutorial-modal" class="tutorial-modal">
+        <div class="tutorial-card">
+            <div id="tutorial-title" class="tutorial-header">🧠 Welcome to Multiplication Mastery</div>
+            <div id="tutorial-text" class="tutorial-body">
+                </div>
+            <div class="tutorial-footer">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="hide-tutorial-checkbox"> Do not show again
+                </label>
+                <button id="btn-tutorial-action" class="btn-modal-next" onclick="nextTutorialStep()">Next Step</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="left-sidebar">
+            <header>
+                <h1>Multiplication Mastery</h1>
+            </header>
+
+            <div class="panel username-panel">
+                <label for="player-name">Player Profile</label>
+                <input type="text" id="player-name" value="Player 1" placeholder="Enter name..." oninput="handleNameInput()">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="remember-profile-checkbox" onchange="toggleRememberProfile()"> Save User Login
+                </label>
+            </div>
+
+            <div class="panel menu-container">
+                <button id="btn-easy" onclick="changeMode('easy')">🟢 Easy (6x6)</button>
+                <button id="btn-diff" onclick="changeMode('difficult')">🟠 Difficult (11x11)</button>
+                <button id="btn-pro" onclick="changeMode('pro')">🔴 Pro (16x16)</button>
+                
+                <div class="toggle-container">
+                    <span style="font-weight: 600; font-size: 0.95rem;">Shuffle Headers</span>
+                    <label class="switch">
+                        <input type="checkbox" id="shuffle-toggle" onchange="prepareRound()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="panel stats-panel">
+                <div class="stat-box full-width">
+                    <div class="label">Total Score</div>
+                    <div id="stat-score" class="value">0</div>
+                </div>
+                <div class="stat-box full-width">
+                    <div class="label">Timer</div>
+                    <div id="stat-timer" class="value">00:00</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Combo</div>
+                    <div id="stat-combo" class="value">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Mult</div>
+                    <div id="stat-mult" class="value">1.0x</div>
+                </div>
+                <div class="stat-box full-width" style="margin-top: 4px;">
+                    <div class="label">Accuracy Rate</div>
+                    <div id="stat-accuracy" class="value">100%</div>
+                </div>
+            </div>
+
+            <div class="info-bar">
+                💡 <b>Inputs &amp; Controls:</b> Answers check once you leave the cell. Use Arrow keys (←, →, ↑, ↓) or Enter/Tab to speed-run!
+            </div>
+        </div>
+
+        <div class="grid-area">
+            <div id="play-overlay" class="play-overlay">
+                <button class="btn-start-game" onclick="startRoundNow()">▶ Start Game</button>
+            </div>
+            <div id="game-container" class="game-container blurred">
+                <table id="game-table"></table>
+            </div>
+        </div>
+
+        <div class="right-sidebar">
+            <div id="results-panel" class="panel results-panel">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        const modes = {
+            easy: { start: 2, end: 7, size: 6, autoShuffle: false },
+            difficult: { start: 2, end: 12, size: 11, autoShuffle: true },
+            pro: { start: 2, end: 17, size: 16, autoShuffle: true }
+        };
+
+        let currentMode = 'easy';
+        let score = 0;
+        let combo = 0;
+        let correctCount = 0;
+        let totalAttempts = 0;
+        let startTime = null;
+        let timerInterval = null;
+        let gameActive = false;
+
+        let incorrectEntries = [];
+
+        // Interactive Tutorial multi-step setup array
+        let tutorialStep = 0;
+        const tutorialSteps = [
+            {
+                title: "🎯 Concept & Goal",
+                text: "Welcome to <b>Multiplication Mastery</b>! Your objective is to fill the entire cross-multiplication puzzle matrix grid by multiplying each cell's top column value with its corresponding left row header."
+            },
+            {
+                title: "⚡ Dynamic Combos",
+                text: "Answering correct blocks in consecutive success increases your active <b>Combo counter</b>! Every 5 combos increases your score multiplier factor (1.5x, 2.0x, etc.) to earn massive bonus records."
+            },
+            {
+                title: "⌨️ Speed-run Shortcuts",
+                text: "Don't touch your mouse! Speed-run the table layout instantly by typing your answer, then moving smoothly using the keyboard <b>Arrow keys (←, →, ↑, ↓)</b> or pressing <b>Enter/Tab</b>."
+            },
+            {
+                title: "🏆 High Scores",
+                text: "Enter your username in the player panel to track and display your personal high scores directly on our local dashboard leaderboard comparison charts at the end of each run!"
+            }
+        ];
+
+        // Safe HTML encoding to prevent Cross-Site Scripting (XSS) injection attacks
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        function checkOnboardingTutorial() {
+            // Profile login recovery logic
+            const savedName = localStorage.getItem('mm_remembered_username');
+            if (savedName) {
+                document.getElementById('player-name').value = savedName;
+                document.getElementById('remember-profile-checkbox').checked = true;
+            }
+
+            const skipTutorial = localStorage.getItem('mm_skip_tutorial_guide') === 'true';
+            if (!skipTutorial) {
+                tutorialStep = 0;
+                renderTutorialStep();
+                document.getElementById('tutorial-modal').classList.add('visible');
+            }
+        }
+
+        function renderTutorialStep() {
+            const stepData = tutorialSteps[tutorialStep];
+            document.getElementById('tutorial-title').innerText = stepData.title;
+            document.getElementById('tutorial-text').innerHTML = stepData.text;
+
+            const actionBtn = document.getElementById('btn-tutorial-action');
+            if (tutorialStep === tutorialSteps.length - 1) {
+                actionBtn.innerText = "Let's Play!";
+            } else {
+                actionBtn.innerText = "Next Step";
+            }
+        }
+
+        function nextTutorialStep() {
+            // Save state of the checkboxes
+            if (document.getElementById('hide-tutorial-checkbox').checked) {
+                localStorage.setItem('mm_skip_tutorial_guide', 'true');
+            }
+
+            if (tutorialStep < tutorialSteps.length - 1) {
+                tutorialStep++;
+                renderTutorialStep();
+            } else {
+                // Exit modal
+                document.getElementById('tutorial-modal').classList.remove('visible');
+            }
+        }
+
+        function handleNameInput() {
+            const rememberCheckbox = document.getElementById('remember-profile-checkbox');
+            if (rememberCheckbox.checked) {
+                const nameVal = document.getElementById('player-name').value.trim();
+                localStorage.setItem('mm_remembered_username', nameVal);
+            }
+        }
+
+        function toggleRememberProfile() {
+            const rememberCheckbox = document.getElementById('remember-profile-checkbox');
+            if (rememberCheckbox.checked) {
+                handleNameInput();
+            } else {
+                localStorage.removeItem('mm_remembered_username');
+            }
+        }
+
+        function changeMode(modeKey) {
+            currentMode = modeKey;
+            
+            document.querySelectorAll('.menu-container button').forEach(b => b.classList.remove('active'));
+            const element = document.getElementById(`btn-${modeKey.substring(0,4)}`);
+            if (element) element.classList.add('active');
+            
+            const toggleElement = document.getElementById('shuffle-toggle');
+            toggleElement.checked = modes[modeKey].autoShuffle;
+
+            prepareRound();
+        }
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function prepareRound() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            
+            score = 0;
+            combo = 0;
+            correctCount = 0;
+            totalAttempts = 0;
+            incorrectEntries = [];
+
+            document.getElementById('stat-timer').innerText = "00:00";
+            updateStats();
+            buildPlaceholderTable();
+
+            document.getElementById('game-container').classList.add('blurred');
+            document.getElementById('play-overlay').style.display = 'flex';
+            renderActiveLayout();
+        }
+
+        function startRoundNow() {
+            document.getElementById('play-overlay').style.display = 'none';
+            document.getElementById('game-container').classList.remove('blurred');
+
+            buildTable();
+            
+            gameActive = true;
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+
+            const firstInput = document.querySelector("td[data-row='0'][data-col='0'] input");
+            if (firstInput) firstInput.focus();
+        }
+
+        function updateTimer() {
+            if (!gameActive) return;
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const secs = String(elapsed % 60).padStart(2, '0');
+            document.getElementById('stat-timer').innerText = `${mins}:${secs}`;
+        }
+
+        function updateStats() {
+            const mult = 1 + Math.floor(combo / 5) * 0.5;
+            const accuracy = totalAttempts === 0 ? 100 : Math.round((correctCount / totalAttempts) * 100);
+            
+            document.getElementById('stat-score').innerText = score;
+            document.getElementById('stat-combo').innerText = combo;
+            document.getElementById('stat-mult').innerText = `${mult.toFixed(1)}x`;
+            document.getElementById('stat-accuracy').innerText = `${accuracy}%`;
+        }
+
+        function getLeaderboard() {
+            const data = localStorage.getItem('multiplication_mastery_leaderboard');
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveScoreToLeaderboard(name, finalScore, modeName, accuracy, timeString) {
+            const board = getLeaderboard();
+            board.push({
+                name: name || 'Anonymous',
+                score: finalScore,
+                mode: modeName,
+                accuracy: accuracy,
+                time: timeString,
+                date: new Date().toLocaleDateString()
+            });
+            board.sort((a, b) => b.score - a.score);
+            localStorage.setItem('multiplication_mastery_leaderboard', JSON.stringify(board.slice(0, 10)));
+        }
+
+        function renderActiveLayout() {
+            const resultsPanel = document.getElementById('results-panel');
+            resultsPanel.classList.remove('completed');
+            
+            const board = getLeaderboard();
+            let boardHtml = '';
+            
+            if (board.length === 0) {
+                boardHtml = `<li style="color:var(--text-muted); text-align:center; border:none;">No scores logged yet!</li>`;
+            } else {
+                board.forEach((entry, index) => {
+                    const isTop = index === 0;
+                    boardHtml += `
+                        <li class="${isTop ? 'top-score' : ''}">
+                            <div>
+                                <b>${index + 1}. ${escapeHTML(entry.name)}</b> 
+                                <span style="font-size:0.75rem; color:var(--text-muted); display:block;">Mode: ${escapeHTML(entry.mode)} (${entry.accuracy}%)</span>
+                            </div>
+                            <span style="font-weight:bold; color: ${isTop ? 'var(--gold)' : 'var(--text-main)'}">${entry.score}</span>
+                        </li>
+                    `;
+                });
+            }
+
+            resultsPanel.innerHTML = `
+                <div class="results-title">🏆 Top Records</div>
+                <div class="scrollable-section">
+                    <ul class="leaderboard-list">${boardHtml}</ul>
+                </div>
+            `;
+        }
+
+        function buildPlaceholderTable() {
+            const table = document.getElementById('game-table');
+            table.innerHTML = '';
+            const size = modes[currentMode].size;
+
+            const topRow = document.createElement('tr');
+            const corner = document.createElement('th');
+            corner.className = 'corner';
+            topRow.appendChild(corner);
+            for (let j = 0; j < size; j++) {
+                const th = document.createElement('th');
+                topRow.appendChild(th);
+            }
+            table.appendChild(topRow);
+
+            for (let i = 0; i < size; i++) {
+                const tr = document.createElement('tr');
+                const th = document.createElement('th');
+                tr.appendChild(th);
+                for (let j = 0; j < size; j++) {
+                    const td = document.createElement('td');
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+        }
+
+        function buildTable() {
+            const table = document.getElementById('game-table');
+            table.innerHTML = '';
+            
+            const config = modes[currentMode];
+            const size = config.size;
+
+            let rowSeq = [];
+            let colSeq = [];
+            for(let i = config.start; i <= config.end; i++) {
+                rowSeq.push(i);
+                colSeq.push(i);
+            }
+
+            if (document.getElementById('shuffle-toggle').checked) {
+                rowSeq = shuffle(rowSeq);
+                colSeq = shuffle(colSeq);
+            }
+
+            const topRow = document.createElement('tr');
+            const corner = document.createElement('th');
+            corner.className = 'corner';
+            topRow.appendChild(corner);
+
+            for (let j = 0; j < size; j++) {
+                const th = document.createElement('th');
+                th.id = `col-hdr-${j}`;
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'cell-content';
+                cellDiv.innerText = colSeq[j];
+                th.appendChild(cellDiv);
+                topRow.appendChild(th);
+            }
+            table.appendChild(topRow);
+
+            for (let i = 0; i < size; i++) {
+                const tr = document.createElement('tr');
+                const th = document.createElement('th');
+                th.id = `row-hdr-${i}`;
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'cell-content';
+                cellDiv.innerText = rowSeq[i];
+                th.appendChild(cellDiv);
+                tr.appendChild(th);
+
+                for (let j = 0; j < size; j++) {
+                    const td = document.createElement('td');
+                    td.dataset.row = i;
+                    td.dataset.col = j;
+                    
+                    const cellContent = document.createElement('div');
+                    cellContent.className = 'cell-content';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.dataset.val1 = rowSeq[i];
+                    input.dataset.val2 = colSeq[j];
+                    input.dataset.correctAnswer = rowSeq[i] * colSeq[j];
+                    
+                    input.addEventListener('focus', () => {
+                        highlightLine(i, j);
+                        input.dataset.prevVal = input.value;
+                    });
+                    
+                    input.addEventListener('blur', (e) => {
+                        removeHighlight();
+                        checkAnswer(e.target);
+                    });
+
+                    input.addEventListener('keydown', (e) => handleNavigation(e, i, j));
+
+                    cellContent.appendChild(input);
+                    td.appendChild(cellContent);
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+        }
+
+        function highlightLine(row, col) {
+            removeHighlight();
+            const rHdr = document.getElementById(`row-hdr-${row}`);
+            const cHdr = document.getElementById(`col-hdr-${col}`);
+            if(rHdr) rHdr.classList.add('highlighted-header');
+            if(cHdr) cHdr.classList.add('highlighted-header');
+
+            document.querySelectorAll('td').forEach(td => {
+                if (parseInt(td.dataset.row) === row || parseInt(td.dataset.col) === col) {
+                    td.classList.add('highlighted-row-col');
+                }
+            });
+        }
+
+        function removeHighlight() {
+            document.querySelectorAll('th').forEach(th => th.classList.remove('highlighted-header'));
+            document.querySelectorAll('td').forEach(td => td.classList.remove('highlighted-row-col'));
+        }
+
+        function checkAnswer(input) {
+            if (!gameActive) return;
+            
+            if (input.value === '' || input.value === input.dataset.prevVal) {
+                return;
+            }
+
+            const val = parseInt(input.value);
+            const target = parseInt(input.dataset.correctAnswer);
+            const factor1 = input.dataset.val1;
+            const factor2 = input.dataset.val2;
+
+            if (val === target) {
+                incorrectEntries = incorrectEntries.filter(entry => !(entry.f1 == factor1 && entry.f2 == factor2));
+                
+                input.className = 'correct';
+                input.disabled = true;
+                
+                correctCount++;
+                totalAttempts++;
+                combo++;
+                
+                const mult = 1 + Math.floor((combo - 1) / 5) * 0.5;
+                score += Math.round(10 * mult);
+            } else {
+                input.className = 'incorrect';
+                totalAttempts++;
+                combo = 0;
+
+                incorrectEntries = incorrectEntries.filter(entry => !(entry.f1 == factor1 && entry.f2 == factor2));
+                incorrectEntries.push({ f1: factor1, f2: factor2, correct: target, wrong: val });
+            }
+            updateStats();
+            checkGameCompletion();
+        }
+
+        function checkGameCompletion() {
+            const inputs = document.querySelectorAll('td input');
+            let filledCount = 0;
+
+            inputs.forEach(inp => {
+                if (inp.value !== '') filledCount++;
+            });
+
+            if (filledCount === inputs.length && inputs.length > 0) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+
+            const resultsPanel = document.getElementById('results-panel');
+            resultsPanel.classList.add('completed');
+
+            const finalAccuracy = totalAttempts === 0 ? 100 : Math.round((correctCount / totalAttempts) * 100);
+            const timeStr = document.getElementById('stat-timer').innerText;
+            const pName = document.getElementById('player-name').value.trim() || 'Player 1';
+            const modeCleanName = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+
+            saveScoreToLeaderboard(pName, score, modeCleanName, finalAccuracy, timeStr);
+
+            let mistakeItemsHtml = '';
+            if (incorrectEntries.length === 0) {
+                mistakeItemsHtml = `<li style="border-left-color: var(--correct)">🌟 <b>Perfect Game!</b> Zero errors found.</li>`;
+            } else {
+                incorrectEntries.forEach(entry => {
+                    mistakeItemsHtml += `<li>❌ <b>${entry.f1} × ${entry.f2} = ${entry.correct}</b> <span style="color: var(--text-muted)">(${entry.wrong})</span></li>`;
+                });
+            }
+
+            const updatedBoard = getLeaderboard();
+            let leaderboardItemsHtml = '';
+            updatedBoard.forEach((entry, index) => {
+                const isTop = index === 0;
+                leaderboardItemsHtml += `
+                    <li class="${isTop ? 'top-score' : ''}" style="font-size:0.85rem; padding: 4px 8px;">
+                        <div>
+                            <b>${index + 1}. ${escapeHTML(entry.name)}</b>
+                            <span style="font-size:0.7rem; color:var(--text-muted); display:block;">${escapeHTML(entry.mode)} - ${entry.time}</span>
+                        </div>
+                        <span style="font-weight:bold;">${entry.score}</span>
+                    </li>
+                `;
+            });
+
+            resultsPanel.innerHTML = `
+                <div class="results-title">🎉 Game Over Summary!</div>
+                <div style="font-size: 0.85rem; margin-bottom: 8px; line-height: 1.4; background:#0f172a; padding:8px; border-radius:6px;">
+                    Player: <b>${escapeHTML(pName)}</b><br>
+                    Finished in <b>${timeStr}</b> with <b>${score} pts</b> at <b>${finalAccuracy}%</b> accuracy.
+                </div>
+                
+                <div class="scrollable-section">
+                    <div class="results-title" style="font-size: 0.9rem; border-bottom: none; margin: 0;">Review Mistakes:</div>
+                    <ul class="mistakes-list">${mistakeItemsHtml}</ul>
+                    
+                    <div class="results-title" style="font-size: 0.9rem; border-bottom: none; margin-top: 8px; margin-bottom: 0;">Leaderboard Standings:</div>
+                    <ul class="leaderboard-list">${leaderboardItemsHtml}</ul>
+                </div>
+            `;
+        }
+
+        function handleNavigation(e, row, col) {
+            const size = modes[currentMode].size;
+            let targetRow = row;
+            let targetCol = col;
+
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+            }
+
+            switch (e.key) {
+                case 'ArrowUp': targetRow--; break;
+                case 'ArrowDown': targetRow++; break;
+                case 'ArrowLeft': targetCol--; break;
+                case 'ArrowRight': targetCol++; break;
+                case 'Enter': 
+                    e.preventDefault();
+                    targetCol++;
+                    break;
+                default: return;
+            }
+
+            if (targetCol >= size) { targetCol = 0; targetRow++; }
+            if (targetCol < 0) { targetCol = size - 1; targetRow--; }
+            
+            if (targetRow >= 0 && targetRow < size && targetCol >= 0 && targetCol < size) {
+                const targetInput = document.querySelector(`td[data-row='${targetRow}'][data-col='${targetCol}'] input`);
+                if (targetInput) targetInput.focus();
+            }
+        }
+
+        // Initialize setup on page render
+        changeMode('easy');
+        checkOnboardingTutorial();
+    </script>
+</body>
+</html>
