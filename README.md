@@ -3,7 +3,7 @@
 An elegant, high-performance, keyboard-driven math puzzle game designed to help developers, students, and arithmetic enthusiasts build lightning-fast mental multiplication recall!
 
 Play the live game instantly right inside your browser:  
-👉 **[Click Here to Play!]([https://github.com/BroMarioMethod/multiplication-mastery/](https://bromariomethod.github.io/multiplication-mastery/index.html))**
+👉 **[Click Here to Play!](https://bromariomethod.github.io/multiplication-mastery/index.html)**
 
 ---
 
@@ -35,4 +35,4 @@ This is a lightweight static web application. It requires absolutely zero server
 ### Play Locally
 1. Clone this repository or download the source code:
    ```bash
-   git clone [https://github.com/BroMarioMethod/multiplication-mastery.git](https://github.com/BroMarioMethod/multiplication-mastery.git)
+   git clone https://github.com/BroMarioMethod/multiplication-mastery.git
